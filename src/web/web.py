@@ -12,17 +12,18 @@ from astroid.__pkginfo__ import description
 from astroid.util import limit_inference
 
 Web_Addr = "https://www.alldatasheet.com/view.jsp?Searchword="
-headers={
+Headers={
     "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
     "Connection":"keep-alive",
-    "Host":    "36kr.com/newsflashes",
+    "Host":    "pdf1.alldatasheet.com",
+    "Referer": "",
     "Upgrade-Insecure-Requests":"1",
     "User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:55.0) Gecko/20100101 Firefox/55.0"
 }
 
-unit_dev_info={'name':None,'brand':None,'description':None,'url':None}
+unit_dev_info={'name':None,'brand':None,'description':None,'url':"None",'Original_url':'None','num':'None'}
 dev_info =[]
 
 class Dev_Info:
@@ -69,38 +70,47 @@ class Web_Search(object):
             for str in tem: 
                 desc.append(str)
                 #print(str)
-        #print(tb)
-#         p1 = request.urlopen('http://www.alldatasheet.com/datasheet-pdf/pdf/134370/ETC1/LM1117.html')
-#         h1 = p1.read()
-#         h1 = h1.decode("utf-8")
-#         par1 = BS(h1,'html.parser')
-#         onclick = par1.findAll(href=re.compile(r'alldatasheet.com/datasheet-pdf.+?\.html'),limit=10)
-#         for i in onclick:
-#             print(i['href'])
-        
+        #print(tb)       
         addr_list = reg_addr.findall(html)#进行匹配
         addr_list = list(set(addr_list))
         del dev_info[0:]
         for addr,des in zip(addr_list,desc):
+            print(addr)
             par = addr.split('/')
             unit_dev_info["brand"] = par[4]
-            unit_dev_info["name"] = par[5][0:-4]
+            unit_dev_info['num'] = par[3]
+            unit_dev_info["name"] = par[5][0:-5]
             unit_dev_info["description"] = des
-            unit_dev_info['url'] = "http://pdf1.alldatasheet.com/datasheet-pdf/view/" + addr[39:]
+            Headers["Referer"] = addr
+            URL1 = "http://pdf1.alldatasheet.com/datasheet-pdf/view/" + addr[39:]
+            rqt = request.Request(URL1,headers=Headers)
+            unit_dev_info['Original_url'] = URL1
+            res = request.urlopen(rqt)
+            html1 = res.read()
+            html1 = html1.decode("utf-8")
+            reg1 = r'datasheet-pdf/.+?\.pdf'#正则表达式
+            reg_addr1 = re.compile(reg1)#编译一下，运行更快
+            addr_list1 = reg_addr1.findall(html1)
+            unit_dev_info['url'] = "http://pdf1.alldatasheet.com/" + addr_list1[0]
             com_info = "Brand is:" + unit_dev_info["brand"] + '\n' "Name:" + unit_dev_info["name"] + '\nWeb Address:' + unit_dev_info['url'] + '\n'\
             +"des:" + unit_dev_info["description"]
             URL_list.append(com_info)
-            
             dev_info.append(unit_dev_info.copy())
-            
-            #print(com_info)
-            # print(addr[39:])
+            #print(unit_dev_info['url'])
         #print(dev_info)
         return URL_list
 
 if __name__ == "__main__":
     act1 = Web_Search()
     act1.Get_addr(Web_Addr)
+#     URL1 = 'https://pdf1.alldatasheet.com/datasheet-pdf/view/660132/ETC2/1117.html'
+#     rqt = request.Request(URL1,headers=Headers)
+#     res = request.urlopen(rqt)
+#     html = res.read()
+#     html = html.decode("utf-8")
+#     print(html)
+
+
         
 
         

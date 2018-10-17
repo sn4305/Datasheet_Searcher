@@ -6,6 +6,7 @@ Created on 2018��9��29��
 '''
 import os
 import sys
+from urllib import request
 from textwrap import fill
 from test.test_heapq import SideEffectLT
 from tkinter.constants import RAISED, FLAT
@@ -37,7 +38,11 @@ class Application(Frame):
             self.lb[self.j][3]['width']=20
             self.lb[self.j][3]['fg'] = "brown"
             self.lb[self.j][3]["text"] = "Download"
-            self.lb[self.j][3].bind("<ButtonPress-1>", self.handlerAdaptor(self.download,url=i['url']))
+            self.lb[self.j][3].bind("<ButtonPress-1>", self.handlerAdaptor(self.download,url=i['url'],
+                                                                           o_url=i['Original_url'],
+                                                                           brand=i['brand'],
+                                                                           Dev_name=i['name'],
+                                                                           num=i['num']))
 #             self.lb.bind("<Enter>", self.c1)
             self.lb[self.j][3].grid(row=self.j, column=3, sticky="nsew")
             self.j+=1
@@ -121,8 +126,37 @@ class Application(Frame):
             #print("File open error")
             mb.showinfo("Error","Save failure!")
             
-    def download(self,event,url='error'):
-        mb.showinfo("Info", url)
+#     def _progress(self,block_num, block_size, total_size):
+#         param = 100 * block_num * block_size / total_size
+#         if param >= 100:
+#             mb.showinfo("Info", "Download success!") 
+          
+    def download(self,event,url,o_url,brand,Dev_name,num):
+        Header__ = {
+    'host': 'pdf1.alldatasheet.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+    (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134',     
+    'Cookie': '',
+    'Referer': ''      
+           }
+        filename = '../../'  + brand + '_' + Dev_name + '.pdf'
+        k0 = int(num)-50
+        cookie = 'chk=' + str(k0) + '; chk1=50; chk2=' + brand + '; chk3=' + Dev_name +';'
+        Header__['Cookie'] = cookie
+        print(cookie)
+        Header__['Referer'] = o_url
+        try:
+            rqt = request.Request(url,headers=Header__)
+            res = request.urlopen(rqt)
+            html = res.read()
+            #html1.decode("ISO-8859-1")
+            fd = open(filename,"wb")
+            fd.write(html)
+            fd.close()
+            mb.showinfo("Info", "Download success!")
+        except:
+            mb.showinfo("Info", "Download fail!")
+        
     def handlerAdaptor(self,fun, **kwds):
         return lambda event,fun=fun,kwds=kwds: fun(event, **kwds)
         
